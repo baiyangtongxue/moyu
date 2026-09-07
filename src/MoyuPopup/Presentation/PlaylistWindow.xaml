@@ -2,30 +2,49 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="素材清单"
-        Width="480" Height="380"
-        MinWidth="420" MinHeight="300"
+        Width="520" Height="400"
+        MinWidth="460" MinHeight="320"
         WindowStartupLocation="CenterScreen"
         ShowInTaskbar="False"
         Background="#FF25272B">
     <Grid Margin="12">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <!-- 顶部：链接输入 + 添加 -->
-        <DockPanel Grid.Row="0" Margin="0,0,0,10">
+        <!-- 登录获取：平台源 + 类别 + 登录/获取 -->
+        <Grid Grid.Row="0" Margin="0,0,0,8">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <ComboBox x:Name="CmbSource" Grid.Column="0" Height="28" VerticalAlignment="Center"
+                      SelectionChanged="OnSourceChanged"/>
+            <ComboBox x:Name="CmbCategory" Grid.Column="1" Width="110" Height="28" Margin="8,0,0,0"
+                      VerticalAlignment="Center"/>
+            <Button x:Name="BtnLogin" Grid.Column="2" Content="登录平台" Width="72" Height="28"
+                    Margin="8,0,0,0" Click="OnLogin"/>
+            <Button x:Name="BtnFetch" Grid.Column="3" Content="获取列表" Width="72" Height="28"
+                    Margin="8,0,0,0" Click="OnFetch"/>
+        </Grid>
+
+        <!-- 链接输入 + 添加 -->
+        <DockPanel Grid.Row="1" Margin="0,0,0,10">
             <Button DockPanel.Dock="Right" Content="添加" Width="64" Height="30"
                     Margin="8,0,0,0" Click="OnAdd"/>
             <TextBox x:Name="UrlBox" Height="30" VerticalContentAlignment="Center"
                      VerticalAlignment="Center"
                      Background="#FF1B1D21" Foreground="#FFE8EAED" BorderBrush="#FF3A3F46"
-                     KeyDown="OnUrlKeyDown"/>
+                     KeyDown="OnUrlKeyDown" ToolTip="粘贴视频链接后回车添加"/>
         </DockPanel>
 
-        <!-- 中部：队列列表（双击播放，▶ 标记当前条目） -->
-        <ListView x:Name="QueueList" Grid.Row="1"
+        <!-- 队列列表（双击播放，▶ 标记当前条目） -->
+        <ListView x:Name="QueueList" Grid.Row="2"
                   Background="#FF1B1D21" BorderBrush="#FF3A3F46" BorderThickness="1"
                   Foreground="#FFE8EAED"
                   MouseDoubleClick="OnItemDoubleClick"
@@ -44,15 +63,19 @@
             </ListView.View>
         </ListView>
 
-        <!-- 底部：移除 / 清空 + 提示 -->
-        <DockPanel Grid.Row="2" Margin="0,10,0,0">
+        <!-- 移除 / 清空 + 状态提示 -->
+        <DockPanel Grid.Row="3" Margin="0,10,0,0">
             <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
                 <Button Content="移除选中" Width="76" Height="28" Click="OnRemove"/>
                 <Button Content="清空" Width="64" Height="28" Margin="8,0,0,0" Click="OnClear"/>
             </StackPanel>
-            <TextBlock Text="双击条目立即播放 · Ctrl+Alt+←/→ 快速切集"
+            <TextBlock x:Name="LblStatus" Text="双击条目立即播放 · Ctrl+Alt+←/→ 快速切集"
                        Foreground="#FF8A919C" FontSize="11"
-                       VerticalAlignment="Center"/>
+                       VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
         </DockPanel>
+
+        <!-- 隐形宿主：为会话 WebView2 提供 HWND（必须在布局树中，不能 Collapsed） -->
+        <Grid x:Name="SessionHost" Grid.Row="2" Width="1" Height="1"
+              HorizontalAlignment="Left" VerticalAlignment="Bottom" Visibility="Hidden"/>
     </Grid>
 </Window>

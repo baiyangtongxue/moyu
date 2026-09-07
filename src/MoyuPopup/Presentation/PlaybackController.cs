@@ -31,6 +31,7 @@ public sealed class PlaybackController
     private bool _shouldPlay;              // 仅 Playing 态轮询保存位置
     private int _consecutiveFails;         // 连续加载失败计数（≥3 暂停队列）
     private int? _pendingSeek;             // 导航完成后的续播起点（秒）
+    private bool _refilling;               // 队尾自动补全进行中，防重复触发
 
     /// <summary>当前条目（透传自播放队列）</summary>
     public VideoItem? Current => _playlist.Current;
@@ -137,6 +138,7 @@ public sealed class PlaybackController
         if (item == null) return null;
         _playlist.AddHistory(item);
         _ = PreloadAsync(item);
+        EnsureRefill();                    // 接近队尾时自动补全，避免播放中断
         return item;
     }
 
@@ -146,6 +148,39 @@ public sealed class PlaybackController
         if (!_playlist.SetCurrentById(item.Id)) return;
         _playlist.AddHistory(item);
         await PreloadAsync(item);
+        EnsureRefill();                    // 接近队尾时自动补全
+    }
+
+    /// <summary>队列剩余 ≤10 条时触发后台补全（拉取新的随机视频追加，去重）</summary>
+    public void EnsureRefill()
+    {
+        if (_refilling) return;
+        if (_playlist.Items.Count == 0 || _playlist.Items.Count - _playlist.CurrentIndex > 10) return;
+        _ = RefillAsync();
+    }
+
+    /// <summary>后台拉取一批新的随机视频并追加到队列（免登录源；失败仅记日志）</summary>
+    private async Task RefillAsync()
+    {
+        _refilling = true;
+        Log.Info("队尾触发自动补全，正在拉取新的随机视频…");
+        try
+        {
+            var source = ListSourceRegistry.Get("bilibili");
+            if (source == null) return;
+            var items = await source.FetchAsync("随机视频", NullSession.Instance, CancellationToken.None);
+            if (items.Count == 0) return;
+            var added = _playlist.AddRange(items);
+            Log.Info($"队尾自动补全随机视频: 拉取 {items.Count} 条, 新增 {added} 条");
+        }
+        catch (Exception ex)
+        {
+            Log.Error("队尾自动补全随机视频失败", ex);
+        }
+        finally
+        {
+            _refilling = false;
+        }
     }
 
     /// <summary>预加载：初始化 WebView + 导航（记录续播起点）</summary>

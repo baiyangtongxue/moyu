@@ -44,6 +44,9 @@ public partial class App : Application
         var playlist = new PlaylistManager();
         playlist.Load();
 
+        // 启动后自动拉取随机视频（免登录），填充播放队列，避免首次悬停无片可播
+        _ = FetchRandomSeedAsync(playlist);
+
         _window = new PopupWindow(cfg, machine, playlist);
 
         _tray = new TrayController(cfg.Stealth.TrayTooltip);
@@ -62,6 +65,24 @@ public partial class App : Application
 
         _window.Show();
         Log.Info("App 启动完成");
+    }
+
+    /// <summary>启动后拉取 100 条随机视频填充队列（免登录；仅记日志，失败不阻断启动）</summary>
+    private static async Task FetchRandomSeedAsync(PlaylistManager playlist)
+    {
+        try
+        {
+            var source = ListSourceRegistry.Get("bilibili");
+            if (source == null) return;
+            var items = await source.FetchAsync("随机视频", NullSession.Instance, CancellationToken.None);
+            if (items.Count == 0) return;
+            var added = playlist.AddRange(items);
+            Log.Info($"启动自动获取随机视频: {items.Count} 条, 新增 {added} 条");
+        }
+        catch (Exception ex)
+        {
+            Log.Error("启动自动获取随机视频失败", ex);
+        }
     }
 
     /// <summary>退出：放行窗口关闭后停止应用</summary>

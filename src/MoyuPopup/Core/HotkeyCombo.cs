@@ -100,6 +100,11 @@ public readonly struct HotkeyCombo : IEquatable<HotkeyCombo>
             case "home": vk = 0x24; display = "Home"; return true;
             case "end": vk = 0x23; display = "End"; return true;
             case "tab": vk = 0x09; display = "Tab"; return true;
+            // 常见符号键：避免与显卡「屏幕旋转」的 Ctrl+Alt+方向键冲突
+            case "comma" or ",": vk = 0xBC; display = ","; return true;
+            case "period" or "dot" or ".": vk = 0xBE; display = "."; return true;
+            case "minus" or "-": vk = 0xBD; display = "-"; return true;
+            case "equal" or "plus" or "=": vk = 0xBB; display = "="; return true;
         }
         return vk != 0;
     }

@@ -45,6 +45,9 @@ public sealed class WindowConfig
 
     /// <summary>锁定 16:9 尺寸（预留，M4 设置界面使用）</summary>
     public bool SizeLocked { get; set; } = true;
+
+    /// <summary>透明模式：广告态窗口近乎全透明仅留细小可悬停边；该模式下按住左键可拖动定位（默认关）</summary>
+    public bool TransparentMode { get; set; } = false;
 }
 
 /// <summary>窗口坐标</summary>
@@ -107,20 +110,20 @@ public sealed class HotkeyConfig
     /// <summary>显示/隐藏（老板键）</summary>
     public string Toggle { get; set; } = "Ctrl+Alt+V";
 
-    /// <summary>下一集（M3）</summary>
-    public string Next { get; set; } = "Ctrl+Alt+Right";
+    /// <summary>下一集（M3；用符号键避免与显卡「屏幕旋转」的 Ctrl+Alt+方向键冲突）</summary>
+    public string Next { get; set; } = "Ctrl+Alt+.";
 
     /// <summary>上一集（M3）</summary>
-    public string Prev { get; set; } = "Ctrl+Alt+Left";
+    public string Prev { get; set; } = "Ctrl+Alt+,";
 
     /// <summary>播放/暂停（M2）</summary>
     public string PlayPause { get; set; } = "Ctrl+Alt+Space";
 
     /// <summary>音量+（M2）</summary>
-    public string VolUp { get; set; } = "Ctrl+Alt+Up";
+    public string VolUp { get; set; } = "Ctrl+Alt+=";
 
     /// <summary>音量-（M2）</summary>
-    public string VolDown { get; set; } = "Ctrl+Alt+Down";
+    public string VolDown { get; set; } = "Ctrl+Alt+-";
 
     /// <summary>上班锁定开关</summary>
     public string LockAd { get; set; } = "Ctrl+Alt+L";

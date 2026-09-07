@@ -68,3 +68,14 @@ public static class ListSourceRegistry
     /// <summary>所有已登记列表源（用于平台下拉选择）</summary>
     public static IReadOnlyList<IPlatformListSource> All => Sources;
 }
+
+/// <summary>空会话：不提供任何 Cookie（用于免登录的随机/公开列表拉取）</summary>
+public sealed class NullSession : IPlatformSession
+{
+    /// <summary>单例</summary>
+    public static readonly NullSession Instance = new();
+
+    /// <summary>始终返回 null（无 Cookie）</summary>
+    public Task<string?> GetCookieHeaderAsync(string host, CancellationToken ct)
+        => Task.FromResult<string?>(null);
+}

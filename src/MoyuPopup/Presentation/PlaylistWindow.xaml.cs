@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Input;
 using MoyuPopup.Core;
 
@@ -17,6 +18,17 @@ public partial class PlaylistWindow : Window
 {
     private readonly PlaylistManager _playlist;
     private readonly PlaybackController _playback;
+    private readonly WebView2Session _session = new();
+    private IPlatformListSource? _source;
+    private bool _busy;   // 防止重复触发获取
+
+    /// <summary>可选登录平台（与登录窗口一致；仅登记了列表源的平台支持自动获取列表）</summary>
+    private static readonly (string Tag, string Name)[] SelectablePlatforms =
+    {
+        ("bilibili", "哔哩哔哩"),
+        ("tencent", "腾讯视频"),
+        ("douyin", "抖音"),
+    };
 
     /// <summary>列表行视图模型（GridView 绑定用）</summary>
     private sealed record Row(string Id, string Title, string Platform, string PositionText, string CurrentMark);
@@ -27,9 +39,111 @@ public partial class PlaylistWindow : Window
         InitializeComponent();
         _playlist = playlist;
         _playback = playback;
+        _session.Attach(SessionHost);          // 为会话 WebView2 提供宿主（需 HWND 才能初始化）
         _playlist.Changed += Refresh;
-        Closed += (s, e) => _playlist.Changed -= Refresh;   // 防重复挂接泄漏
+        Closed += (s, e) =>
+        {
+            _playlist.Changed -= Refresh;   // 防重复挂接泄漏
+            _session.Dispose();             // 释放登录会话 WebView2
+        };
+        PopulateSources();
         Refresh();
+    }
+
+    /// <summary>填充平台下拉（与登录窗口一致的平台；未登记列表源的平台可登录但不能自动获取）</summary>
+    private void PopulateSources()
+    {
+        CmbSource.Items.Clear();
+        foreach (var (tag, name) in SelectablePlatforms)
+            CmbSource.Items.Add(new ComboBoxItem { Content = name, Tag = tag });
+        if (CmbSource.Items.Count > 0) CmbSource.SelectedIndex = 0;
+    }
+
+    /// <summary>平台切换 → 刷新类别下拉；无列表源的平台禁用「获取列表」</summary>
+    private void OnSourceChanged(object sender, SelectionChangedEventArgs e)
+    {
+        var tag = (CmbSource.SelectedItem as ComboBoxItem)?.Tag as string ?? "";
+        _source = ListSourceRegistry.Get(tag);
+        CmbCategory.Items.Clear();
+        if (_source != null)
+        {
+            foreach (var cat in _source.Categories)
+                CmbCategory.Items.Add(cat);
+            if (CmbCategory.Items.Count > 0) CmbCategory.SelectedIndex = 0;
+            BtnFetch.IsEnabled = true;
+            LblStatus.Text = "双击条目立即播放 · Ctrl+Alt+←/→ 快速切集";
+        }
+        else
+        {
+            BtnFetch.IsEnabled = false;
+            LblStatus.Text = "该平台暂不支持自动获取列表，请用「粘贴链接」添加。";
+        }
+    }
+
+    /// <summary>登录平台：打开登录窗口（预选当前平台），登录成功自动获取列表</summary>
+    private void OnLogin(object sender, RoutedEventArgs e)
+    {
+        var tag = (CmbSource.SelectedItem as ComboBoxItem)?.Tag as string ?? "";
+        if (string.IsNullOrEmpty(tag)) return;
+        var login = new LoginWindow(tag);
+        login.LoginCompleted += platform => { _ = FetchListAsync(); };   // 登录成功即自动获取
+        login.Show();
+    }
+
+    /// <summary>手动获取列表</summary>
+    private async void OnFetch(object sender, RoutedEventArgs e) => await FetchListAsync();
+
+    /// <summary>获取当前平台所选类别的列表并追加到队列；未登录/失败给出提示</summary>
+    private async Task FetchListAsync()
+    {
+        var source = _source;
+        if (source == null)
+        {
+            LblStatus.Text = "该平台暂不支持自动获取列表，请用「粘贴链接」添加。";
+            return;
+        }
+        if (_busy) return;
+        var category = CmbCategory.SelectedItem as string;
+        if (category == null)
+        {
+            LblStatus.Text = "请选择列表类别。";
+            return;
+        }
+
+        _busy = true;
+        BtnFetch.IsEnabled = false;
+        LblStatus.Text = "正在获取列表…";
+        Log.Info($"开始获取播放列表: {source.Platform}/{category}");
+        try
+        {
+            var items = await source.FetchAsync(category, _session, CancellationToken.None);
+            if (items.Count == 0)
+            {
+                LblStatus.Text = "未获取到条目（该类别可能为空）。";
+                Log.Warn($"B站列表源: 该类别无条目: {category}");
+                return;
+            }
+            var added = _playlist.AddRange(items);
+            Log.Info($"获取播放列表: {source.Platform}/{category} 共 {items.Count} 条, 新增 {added} 条");
+            LblStatus.Text = $"已获取 {items.Count} 条，新增 {added} 条。";
+        }
+        catch (PlatformNotLoggedInException ex)
+        {
+            Log.Warn($"未登录: {ex.Message}");
+            LblStatus.Text = "尚未登录，请先点「登录平台」。";
+            MessageBox.Show(ex.Message, "获取列表", MessageBoxButton.OK, MessageBoxImage.Warning);
+        }
+        catch (Exception ex)
+        {
+            Log.Error($"获取播放列表失败: {ex.Message}", ex);
+            LblStatus.Text = "获取失败，详见日志。";
+            MessageBox.Show($"获取失败：{ex.Message}", "获取列表", MessageBoxButton.OK, MessageBoxImage.Warning);
+        }
+        finally
+        {
+            _busy = false;
+            BtnFetch.IsEnabled = true;
+        }
     }
 
     /// <summary>全量重建列表（队列规模小，O(n) 足够）；当前条目标记 ▶ 与进度</summary>

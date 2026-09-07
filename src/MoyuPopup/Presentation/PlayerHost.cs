@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
 using System.Windows;
@@ -65,7 +66,10 @@ public sealed class PlayerHost
         catch (Exception ex)
         {
             Log.Error("WebView2 Runtime 未安装", ex);
-            SetHint("未检测到 WebView2 运行时，请安装 Microsoft Edge WebView2 后重试");
+            // 若随包携带 Evergreen 引导器，则静默安装；否则提示手动安装
+            SetHint(TryLaunchWebView2Installer()
+                ? "未检测到 WebView2 运行时，正在自动安装，请稍候重试…"
+                : "未检测到 WebView2 运行时，请手动安装 Microsoft Edge WebView2 后重试");
             return false;
         }
 
@@ -74,13 +78,8 @@ public sealed class PlayerHost
             _webView = new WV2.WebView2();
             _container.Children.Insert(0, _webView);
 
-            var options = new CoreWebView2EnvironmentOptions
-            {
-                // 允许无用户手势自动播放：悬停即播的关键（设计书 3.3）
-                AdditionalBrowserArguments = "--autoplay-policy=no-user-gesture-required",
-            };
-            var env = await CoreWebView2Environment.CreateAsync(
-                null, Path.Combine(ConfigManager.AppDataDir, "WebView2"), options);
+            // 复用共享环境（含自动播放策略），避免多环境争用同一用户数据目录
+            var env = await WebView2EnvironmentProvider.GetAsync();
             await _webView.EnsureCoreWebView2Async(env);
 
             // 降低“存在感”：禁右键菜单/状态栏/DevTools
@@ -101,6 +100,24 @@ public sealed class PlayerHost
         {
             Log.Error("WebView2 初始化失败", ex);
             SetHint("播放组件初始化失败，详见日志");
+            return false;
+        }
+    }
+
+    /// <summary>若随包携带 WebView2 Evergreen 引导器，则静默启动安装，返回是否已启动</summary>
+    private static bool TryLaunchWebView2Installer()
+    {
+        try
+        {
+            var installer = Path.Combine(AppContext.BaseDirectory, "WebView2RuntimeInstaller.exe");
+            if (!File.Exists(installer)) return false;
+            Process.Start(new ProcessStartInfo(installer) { UseShellExecute = true });
+            Log.Info("已启动 WebView2 引导器，静默安装中…");
+            return true;
+        }
+        catch (Exception ex)
+        {
+            Log.Warn($"启动 WebView2 自动安装失败: {ex.Message}");
             return false;
         }
     }

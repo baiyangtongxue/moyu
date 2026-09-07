@@ -42,6 +42,7 @@ public partial class SettingsWindow : Window
         ChkTopmost.IsChecked = _cfg.Window.Topmost;
         ChkPauseOnLeave.IsChecked = _cfg.Behavior.PauseOnLeave;
         ChkRememberPos.IsChecked = _cfg.Behavior.RememberPosition;
+        ChkTransparentMode.IsChecked = _cfg.Window.TransparentMode;
 
         HkToggle.Text = _cfg.Hotkeys.Toggle;
         HkNext.Text = _cfg.Hotkeys.Next;
@@ -113,6 +114,7 @@ public partial class SettingsWindow : Window
             Key.Space => "Space",
             Key.Left => "Left", Key.Up => "Up", Key.Right => "Right", Key.Down => "Down",
             Key.Home => "Home", Key.End => "End",
+            Key.OemComma => ",", Key.OemPeriod => ".", Key.OemMinus => "-", Key.OemPlus => "=",
             _ when key is >= Key.F1 and <= Key.F24 => ((int)key - (int)Key.F1 + 1).ToString(),
             _ => null,
         };
@@ -209,6 +211,7 @@ public partial class SettingsWindow : Window
         _cfg.Behavior.HoverDelayMs = hover;
         _cfg.Behavior.PauseOnLeave = ChkPauseOnLeave.IsChecked == true;
         _cfg.Behavior.RememberPosition = ChkRememberPos.IsChecked == true;
+        _cfg.Window.TransparentMode = ChkTransparentMode.IsChecked == true;
         _cfg.Hotkeys.Toggle = hotkeys["toggle"];
         _cfg.Hotkeys.Next = hotkeys["next"];
         _cfg.Hotkeys.Prev = hotkeys["prev"];

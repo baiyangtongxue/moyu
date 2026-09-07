@@ -66,6 +66,28 @@
                                         FontSize="12" Click="OnHideClick" ToolTip="隐藏窗口（老板键）"/>
                             </StackPanel>
                         </Border>
+
+                        <!-- 播放态右上角关闭按钮（老板键），与广告层假 ✘ 一致，始终可见 -->
+                        <Border x:Name="PlayCloseBtn"
+                                Width="22" Height="22" CornerRadius="11"
+                                HorizontalAlignment="Right" VerticalAlignment="Top"
+                                Margin="0,6,6,0" Cursor="Hand"
+                                MouseLeftButtonUp="OnPlayCloseClick"
+                                ToolTip="隐藏窗口（老板键）">
+                            <Border.Style>
+                                <Style TargetType="Border">
+                                    <Setter Property="Background" Value="#44000000"/>
+                                    <Style.Triggers>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter Property="Background" Value="#88000000"/>
+                                        </Trigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Border.Style>
+                            <TextBlock Text="✕" FontSize="11" Foreground="White"
+                                       HorizontalAlignment="Center" VerticalAlignment="Center"
+                                       IsHitTestVisible="False"/>
+                        </Border>
                     </Grid>
                 </Border>
             </Grid>

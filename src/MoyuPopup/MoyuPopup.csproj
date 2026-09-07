@@ -11,19 +11,28 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <LangVersion>latest</LangVersion>
     <ApplicationManifest>app.manifest</ApplicationManifest>
-    <Version>0.1.0</Version>
+    <ApplicationIcon>app.ico</ApplicationIcon>
+    <Version>0.2.0</Version>
     <AssemblyTitle>广告弹窗投放</AssemblyTitle>
     <Product>AdPopup</Product>
+    <!-- 自定义入口：运行 Velopack 钩子后再启动 WPF（M5 打包自动更新） -->
+    <StartupObject>MoyuPopup.Program</StartupObject>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.2903.40" />
+    <PackageReference Include="Velopack" Version="1.2.0" />
   </ItemGroup>
 
   <!-- 移除 UseWindowsForms 注入的隐式 using，避免与 WPF 类型（Application/Color/Point/Image）二义性 -->
   <ItemGroup>
     <Using Remove="System.Drawing" />
     <Using Remove="System.Windows.Forms" />
+  </ItemGroup>
+
+  <!-- 随包分发 WebView2 Evergreen 引导器：目标机缺失时自动运行安装（M5） -->
+  <ItemGroup>
+    <None Include="WebView2RuntimeInstaller.exe" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>

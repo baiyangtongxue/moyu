@@ -7,6 +7,7 @@ using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
+using System.Windows.Media.Effects;
 using System.Windows.Threading;
 using MoyuPopup.Core;
 
@@ -35,6 +36,15 @@ public partial class PopupWindow : Window
     private bool _allowClose;
     private bool _suppressVolume;                     // 音量滑条初始化赋值时抑制 ValueChanged
 
+    // 记录“广告态”正常外观（深色背景 + 边框 + 阴影），供透明模式切换恢复
+    private readonly Brush? _rootBorderBrush;          // 正常背景
+    private readonly Brush? _rootBorderStroke;         // 正常边框刷
+    private readonly Thickness _rootBorderThickness;   // 正常边框粗细
+    private readonly Effect? _rootShadow;
+
+    /// <summary>透明模式底色：极低 Alpha（≈0.8%），肉眼近乎全透明，但整块窗口区域仍可命中（悬停/拖动）</summary>
+    private static readonly Brush TransparentBody = new SolidColorBrush(Color.FromArgb(0x02, 0x14, 0x16, 0x1A));
+
     /// <summary>上班锁定状态变化（由热键触发，用于同步托盘勾选）</summary>
     public event Action<bool>? TrayLockChanged;
 
@@ -50,6 +60,10 @@ public partial class PopupWindow : Window
         InitializeComponent();
         _cfg = cfg;
         _machine = machine;
+        _rootBorderBrush = RootBorder.Background;
+        _rootBorderStroke = RootBorder.BorderBrush;
+        _rootBorderThickness = RootBorder.BorderThickness;
+        _rootShadow = RootBorder.Effect;
 
         Title = cfg.Stealth.WindowTitle;
         Width = cfg.Window.Width + ShadowMargin * 2;
@@ -84,6 +98,7 @@ public partial class PopupWindow : Window
         _suppressVolume = true;
         VolumeSlider.Value = _volumePercent;
         _suppressVolume = false;
+        ApplyAdAppearance();
     }
 
     /// <summary>句柄就绪：工具窗口样式 → 定位 → 热键 → 鼠标监视</summary>
@@ -115,6 +130,31 @@ public partial class PopupWindow : Window
         AdLayer.LoadSlides(slides, _cfg.Behavior.AdIntervalSec, _cfg.Behavior.AdShuffle);
         AdLayer.CloseRequested += ToggleBoss;   // 假 ✘ = 老板键
         AdLayer.Start();
+    }
+
+    /// <summary>按透明模式开关应用「广告态」外观：隐身+细悬停边 vs 深色广告框</summary>
+    private void ApplyAdAppearance()
+    {
+        if (_cfg.Window.TransparentMode)
+        {
+            // 完全隐身：清背景/边框/阴影，广告图透明到零，无任何可见边；
+            // 底色保留极低 Alpha，使整块窗口区域都可命中（悬停即出视频、左键可拖动）
+            RootBorder.Background = TransparentBody;
+            RootBorder.BorderBrush = null;
+            RootBorder.BorderThickness = new Thickness(0);
+            RootBorder.Effect = null;
+            AdLayer.Visibility = Visibility.Collapsed;
+            AdLayer.Pause();
+        }
+        else
+        {
+            RootBorder.Background = _rootBorderBrush ?? Brushes.Transparent;
+            RootBorder.BorderBrush = _rootBorderStroke;
+            RootBorder.BorderThickness = _rootBorderThickness;
+            RootBorder.Effect = _rootShadow;
+            AdLayer.Visibility = Visibility.Visible;
+            AdLayer.Resume();
+        }
     }
 
     /// <summary>注册 M1 热键：老板键显隐 + 上班锁定开关</summary>
@@ -210,6 +250,7 @@ public partial class PopupWindow : Window
         PlaceWindow(restoreSaved: _cfg.Behavior.RememberPosition);
 
         AdLayer.UpdateSchedule(_cfg.Behavior.AdIntervalSec, _cfg.Behavior.AdShuffle);
+        ApplyAdAppearance();   // 应用透明模式开关
 
         _hotkeys?.Dispose();
         _hotkeys = new HotkeyManager(this);
@@ -261,8 +302,7 @@ public partial class PopupWindow : Window
                 _barHideTimer.Stop();
                 HideMiniBar();
                 PlayLayer.Visibility = Visibility.Collapsed;
-                AdLayer.Visibility = Visibility.Visible;
-                AdLayer.Resume();
+                ApplyAdAppearance();
                 if (_cfg.Behavior.PauseOnLeave) FireAndForget(_playback.PauseAsync());
                 break;
 
@@ -326,6 +366,9 @@ public partial class PopupWindow : Window
     /// <summary>工具条：隐藏 = 老板键</summary>
     private void OnHideClick(object sender, RoutedEventArgs e) => ToggleBoss();
 
+    /// <summary>播放态右上角关闭按钮 = 老板键</summary>
+    private void OnPlayCloseClick(object sender, MouseButtonEventArgs e) => ToggleBoss();
+
     /// <summary>异步播放控制兜底：异常仅记日志，不打断 UI 流程</summary>
     private void FireAndForget(Task task)
     {
@@ -366,11 +409,12 @@ public partial class PopupWindow : Window
         Top = Math.Clamp(Top, wa.Top, Math.Max(wa.Top, wa.Bottom - Height));
     }
 
-    /// <summary>Ctrl + 左键拖动窗口；拖动结束将位置持久化到配置</summary>
+    /// <summary>Ctrl + 左键拖动窗口；透明模式下改为按住左键直接拖动。拖动结束将位置持久化到配置</summary>
     private void OnRootMouseDown(object sender, MouseButtonEventArgs e)
     {
-        if (e.ChangedButton != MouseButton.Left ||
-            !Keyboard.Modifiers.HasFlag(ModifierKeys.Control)) return;
+        if (e.ChangedButton != MouseButton.Left) return;
+        // 透明模式：按住左键即可拖动定位；其它模式保持 Ctrl+左键拖动
+        if (!_cfg.Window.TransparentMode && !Keyboard.Modifiers.HasFlag(ModifierKeys.Control)) return;
         try
         {
             DragMove();

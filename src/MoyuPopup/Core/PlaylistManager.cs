@@ -141,6 +141,26 @@ public sealed class PlaylistManager
         return item;
     }
 
+    /// <summary>批量导入（懒去重）：按 EmbedUrl 哈希去重，仅新增未存在条目，一次性落盘并通知一次。返回实际新增条数。</summary>
+    public int AddRange(IEnumerable<VideoItem> items)
+    {
+        var added = 0;
+        foreach (var it in items)
+        {
+            it.Id = ComputeId(it.EmbedUrl);
+            if (_items.Any(x => x.Id == it.Id)) continue;   // 已存在，跳过
+            it.AddedAt = DateTime.Now;
+            _items.Add(it);
+            added++;
+        }
+        if (added > 0)
+        {
+            SavePlaylist();
+            Changed?.Invoke();
+        }
+        return added;
+    }
+
     /// <summary>推进当前索引（环形，支持负偏移），返回新当前条目</summary>
     public VideoItem? StepTo(int offset)
     {
