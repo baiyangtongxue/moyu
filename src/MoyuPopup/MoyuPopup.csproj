@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
@@ -12,10 +12,10 @@
     <LangVersion>latest</LangVersion>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <ApplicationIcon>app.ico</ApplicationIcon>
-    <Version>0.2.1</Version>
-    <AssemblyTitle>广告弹窗投放</AssemblyTitle>
+    <Version>0.2.2</Version>
+    <AssemblyTitle>骞垮憡寮圭獥鎶曟斁</AssemblyTitle>
     <Product>AdPopup</Product>
-    <!-- 自定义入口：运行 Velopack 钩子后再启动 WPF（M5 打包自动更新） -->
+    <!-- 鑷畾涔夊叆鍙ｏ細杩愯 Velopack 閽╁瓙鍚庡啀鍚姩 WPF锛圡5 鎵撳寘鑷姩鏇存柊锛?-->
     <StartupObject>MoyuPopup.Program</StartupObject>
   </PropertyGroup>
 
@@ -24,13 +24,13 @@
     <PackageReference Include="Velopack" Version="1.2.0" />
   </ItemGroup>
 
-  <!-- 移除 UseWindowsForms 注入的隐式 using，避免与 WPF 类型（Application/Color/Point/Image）二义性 -->
+  <!-- 绉婚櫎 UseWindowsForms 娉ㄥ叆鐨勯殣寮?using锛岄伩鍏嶄笌 WPF 绫诲瀷锛圓pplication/Color/Point/Image锛変簩涔夋€?-->
   <ItemGroup>
     <Using Remove="System.Drawing" />
     <Using Remove="System.Windows.Forms" />
   </ItemGroup>
 
-  <!-- 随包分发 WebView2 Evergreen 引导器：目标机缺失时自动运行安装（M5） -->
+  <!-- 闅忓寘鍒嗗彂 WebView2 Evergreen 寮曞鍣細鐩爣鏈虹己澶辨椂鑷姩杩愯瀹夎锛圡5锛?-->
   <ItemGroup>
     <None Include="WebView2RuntimeInstaller.exe" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
   </ItemGroup>

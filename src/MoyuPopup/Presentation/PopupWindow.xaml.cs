@@ -207,7 +207,7 @@ public partial class PopupWindow : Window
 
     /// <summary>
     /// 热键切集：推进队列（尽力保存当前进度）→ 状态机迁入 Playing（含广告态，设计书 9.3）。
-    /// 队列为空时气泡提示且不触发迁移。
+    /// 队列为空时气泡提示且不触发迁移；切集本身不再弹出托盘气泡（避免气泡遮挡右下角弹窗导致误判 MouseLeave）。
     /// </summary>
     private void StepItem(int offset)
     {
@@ -217,7 +217,6 @@ public partial class PopupWindow : Window
             BubbleRequested?.Invoke("播放列表为空", "请通过托盘「打开视频链接」或「播放列表」添加视频");
             return;
         }
-        BubbleRequested?.Invoke(offset > 0 ? "下一集" : "上一集", item.Title);
         _machine.Fire(offset > 0 ? AppEvent.NextItem : AppEvent.PrevItem);
     }
 
