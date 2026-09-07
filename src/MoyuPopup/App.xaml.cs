@@ -3,6 +3,7 @@ using System.IO;
 using System.Windows;
 using MoyuPopup.Core;
 using MoyuPopup.Presentation;
+using Velopack.Windows;
 
 namespace MoyuPopup;
 
@@ -65,6 +66,39 @@ public partial class App : Application
 
         _window.Show();
         Log.Info("App 启动完成");
+
+        // 首次运行（Velopack 安装后）询问是否添加桌面/开始菜单快捷方式
+        MaybeAskShortcutPrompt();
+    }
+
+    /// <summary>仅在 Velopack 安装环境首次运行时，询问是否创建桌面与开始菜单快捷方式</summary>
+    private void MaybeAskShortcutPrompt()
+    {
+        try
+        {
+            // 仅 Velopack 安装目录（current\sq.version 存在）时提示，开发/便携版跳过
+            if (!File.Exists(Path.Combine(AppContext.BaseDirectory, "sq.version"))) return;
+            var marker = Path.Combine(ConfigManager.AppDataDir, "shortcutPrompt.done");
+            if (File.Exists(marker)) return;
+
+            var res = MessageBox.Show(
+                "是否将「摸鱼小白」添加到桌面与开始菜单快捷方式？",
+                "提示", MessageBoxButton.YesNo, MessageBoxImage.Question);
+            if (res == MessageBoxResult.Yes)
+            {
+#pragma warning disable CS0618   // Shortcuts 为历史 API，仍用于按需创建
+                new Shortcuts().CreateShortcutForThisExe(
+                    ShortcutLocation.Desktop | ShortcutLocation.StartMenuRoot);
+#pragma warning restore CS0618
+                Log.Info("已创建桌面与开始菜单快捷方式");
+            }
+            // 无论结果如何都标记，避免反复询问
+            try { File.WriteAllText(marker, "1"); } catch { /* 忽略 */ }
+        }
+        catch (Exception ex)
+        {
+            Log.Warn($"快捷方式询问失败: {ex.Message}");
+        }
     }
 
     /// <summary>启动后拉取 100 条随机视频填充队列（免登录；仅记日志，失败不阻断启动）</summary>

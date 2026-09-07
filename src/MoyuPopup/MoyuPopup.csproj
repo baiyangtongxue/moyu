@@ -12,7 +12,7 @@
     <LangVersion>latest</LangVersion>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <ApplicationIcon>app.ico</ApplicationIcon>
-    <Version>0.2.0</Version>
+    <Version>0.2.1</Version>
     <AssemblyTitle>广告弹窗投放</AssemblyTitle>
     <Product>AdPopup</Product>
     <!-- 自定义入口：运行 Velopack 钩子后再启动 WPF（M5 打包自动更新） -->
