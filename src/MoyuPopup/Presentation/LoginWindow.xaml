@@ -1,0 +1,37 @@
+<Window x:Class="MoyuPopup.Presentation.LoginWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="账号助手"
+        Width="420" Height="560"
+        MinWidth="360" MinHeight="480"
+        WindowStartupLocation="CenterScreen"
+        WindowStyle="ToolWindow" ResizeMode="CanResize"
+        Topmost="True" ShowInTaskbar="False"
+        Background="#FF25272B">
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <DockPanel Grid.Row="0" Margin="0,0,0,8">
+            <ComboBox x:Name="CmbPlatform" Width="150" Height="28" DockPanel.Dock="Left"
+                      SelectionChanged="OnPlatformChanged">
+                <ComboBoxItem Content="哔哩哔哩" Tag="bilibili" IsSelected="True"/>
+                <ComboBoxItem Content="腾讯视频" Tag="tencent"/>
+                <ComboBoxItem Content="抖音" Tag="douyin"/>
+            </ComboBox>
+            <TextBlock Text="登录信息仅保存在本机（与播放层共享 Cookie）"
+                       Foreground="#FF8A919C" FontSize="11"
+                       VerticalAlignment="Center" HorizontalAlignment="Right" TextTrimming="CharacterEllipsis"/>
+        </DockPanel>
+
+        <Border Grid.Row="1" Background="#FF1B1D21" BorderBrush="#FF3A3F46" BorderThickness="1">
+            <Grid x:Name="WebContainer"/>
+        </Border>
+
+        <TextBlock Grid.Row="2" Text="扫码或输入账号登录后即可关闭本窗口；VIP 内容可用性以平台策略为准。"
+                   Foreground="#FF8A919C" FontSize="11" Margin="0,8,0,0" TextWrapping="Wrap"/>
+    </Grid>
+</Window>

@@ -1,0 +1,154 @@
+<Window x:Class="MoyuPopup.Presentation.SettingsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="设置"
+        Width="480" Height="520"
+        MinWidth="440" MinHeight="480"
+        WindowStartupLocation="CenterScreen"
+        WindowStyle="ToolWindow" ResizeMode="CanResize"
+        Topmost="True" ShowInTaskbar="False"
+        Background="#FF25272B">
+    <Grid Margin="12">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <TabControl Grid.Row="0" Background="Transparent" BorderThickness="0">
+
+            <!-- 常规 -->
+            <TabItem Header="常规" Foreground="#FFE8EAED">
+                <StackPanel Margin="16,12">
+                    <CheckBox x:Name="ChkAutoStart" Content="开机自启（当前用户，静默启动进广告态）"
+                              Foreground="#FFE8EAED" Margin="0,4"/>
+                    <CheckBox x:Name="ChkStartInAd" Content="启动后先进入广告伪装态"
+                              Foreground="#FFE8EAED" Margin="0,8,0,4"/>
+                </StackPanel>
+            </TabItem>
+
+            <!-- 窗口 -->
+            <TabItem Header="窗口" Foreground="#FFE8EAED">
+                <StackPanel Margin="16,12">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="110"/>
+                            <ColumnDefinition Width="90"/>
+                            <ColumnDefinition Width="110"/>
+                            <ColumnDefinition Width="90"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="宽度 (DIP)" Foreground="#FFCCD2D9" VerticalAlignment="Center"/>
+                        <TextBox x:Name="TxtWidth" Grid.Column="1" Height="26" Margin="0,2,10,2"
+                                 Background="#FF1B1D21" Foreground="#FFE8EAED" BorderBrush="#FF3A3F46"/>
+                        <TextBlock Grid.Column="2" Text="高度 (DIP)" Foreground="#FFCCD2D9" VerticalAlignment="Center"/>
+                        <TextBox x:Name="TxtHeight" Grid.Column="3" Height="26" Margin="0,2"
+                                 Background="#FF1B1D21" Foreground="#FFE8EAED" BorderBrush="#FF3A3F46"/>
+                    </Grid>
+                    <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                        <TextBlock Text="不透明度" Foreground="#FFCCD2D9" Width="110" VerticalAlignment="Center"/>
+                        <Slider x:Name="SldOpacity" Width="180" Minimum="0.4" Maximum="1"
+                                TickFrequency="0.05" IsSnapToTickEnabled="True"
+                                ValueChanged="OnOpacityChanged"
+                                VerticalAlignment="Center"/>
+                        <TextBlock x:Name="LblOpacity" Text="0.95" Foreground="#FFE8EAED"
+                                   Margin="10,0,0,0" VerticalAlignment="Center"/>
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                        <TextBlock Text="悬停延时 (ms)" Foreground="#FFCCD2D9" Width="110" VerticalAlignment="Center"/>
+                        <TextBox x:Name="TxtHoverDelay" Width="80" Height="26"
+                                 Background="#FF1B1D21" Foreground="#FFE8EAED" BorderBrush="#FF3A3F46"/>
+                    </StackPanel>
+                    <CheckBox x:Name="ChkTopmost" Content="窗口置顶" Foreground="#FFE8EAED" Margin="0,10,0,0"/>
+                    <CheckBox x:Name="ChkPauseOnLeave" Content="鼠标移开暂停视频" Foreground="#FFE8EAED" Margin="0,8,0,0"/>
+                    <CheckBox x:Name="ChkRememberPos" Content="记忆窗口位置" Foreground="#FFE8EAED" Margin="0,8,0,0"/>
+                </StackPanel>
+            </TabItem>
+
+            <!-- 热键 -->
+            <TabItem Header="热键" Foreground="#FFE8EAED">
+                <Grid Margin="16,12">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="110"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="34"/>
+                        <RowDefinition Height="34"/>
+                        <RowDefinition Height="34"/>
+                        <RowDefinition Height="34"/>
+                        <RowDefinition Height="34"/>
+                        <RowDefinition Height="34"/>
+                        <RowDefinition Height="34"/>
+                    </Grid.RowDefinitions>
+                    <TextBlock Text="老板键" Foreground="#FFCCD2D9" VerticalAlignment="Center"/>
+                    <TextBox x:Name="HkToggle" Grid.Column="1" Height="26" Margin="10,3,0,3" IsReadOnly="True"
+                             Background="#FF1B1D21" Foreground="#FFE8EAED" BorderBrush="#FF3A3F46"
+                             PreviewKeyDown="OnHotkeyKeyDown" ToolTip="点击后按下新组合键（需含 Ctrl/Alt/Shift/Win）"/>
+                    <TextBlock Grid.Row="1" Text="下一集" Foreground="#FFCCD2D9" VerticalAlignment="Center"/>
+                    <TextBox x:Name="HkNext" Grid.Row="1" Grid.Column="1" Height="26" Margin="10,3,0,3" IsReadOnly="True"
+                             Background="#FF1B1D21" Foreground="#FFE8EAED" BorderBrush="#FF3A3F46" PreviewKeyDown="OnHotkeyKeyDown"/>
+                    <TextBlock Grid.Row="2" Text="上一集" Foreground="#FFCCD2D9" VerticalAlignment="Center"/>
+                    <TextBox x:Name="HkPrev" Grid.Row="2" Grid.Column="1" Height="26" Margin="10,3,0,3" IsReadOnly="True"
+                             Background="#FF1B1D21" Foreground="#FFE8EAED" BorderBrush="#FF3A3F46" PreviewKeyDown="OnHotkeyKeyDown"/>
+                    <TextBlock Grid.Row="3" Text="播放/暂停" Foreground="#FFCCD2D9" VerticalAlignment="Center"/>
+                    <TextBox x:Name="HkPlayPause" Grid.Row="3" Grid.Column="1" Height="26" Margin="10,3,0,3" IsReadOnly="True"
+                             Background="#FF1B1D21" Foreground="#FFE8EAED" BorderBrush="#FF3A3F46" PreviewKeyDown="OnHotkeyKeyDown"/>
+                    <TextBlock Grid.Row="4" Text="音量 +" Foreground="#FFCCD2D9" VerticalAlignment="Center"/>
+                    <TextBox x:Name="HkVolUp" Grid.Row="4" Grid.Column="1" Height="26" Margin="10,3,0,3" IsReadOnly="True"
+                             Background="#FF1B1D21" Foreground="#FFE8EAED" BorderBrush="#FF3A3F46" PreviewKeyDown="OnHotkeyKeyDown"/>
+                    <TextBlock Grid.Row="5" Text="音量 -" Foreground="#FFCCD2D9" VerticalAlignment="Center"/>
+                    <TextBox x:Name="HkVolDown" Grid.Row="5" Grid.Column="1" Height="26" Margin="10,3,0,3" IsReadOnly="True"
+                             Background="#FF1B1D21" Foreground="#FFE8EAED" BorderBrush="#FF3A3F46" PreviewKeyDown="OnHotkeyKeyDown"/>
+                    <TextBlock Grid.Row="6" Text="上班锁定" Foreground="#FFCCD2D9" VerticalAlignment="Center"/>
+                    <TextBox x:Name="HkLockAd" Grid.Row="6" Grid.Column="1" Height="26" Margin="10,3,0,3" IsReadOnly="True"
+                             Background="#FF1B1D21" Foreground="#FFE8EAED" BorderBrush="#FF3A3F46" PreviewKeyDown="OnHotkeyKeyDown"/>
+                </Grid>
+            </TabItem>
+
+            <!-- 视频源 -->
+            <TabItem Header="视频源" Foreground="#FFE8EAED">
+                <StackPanel Margin="16,12">
+                    <TextBlock Text="启用平台（custom 永远兜底）" Foreground="#FFCCD2D9" Margin="0,0,0,6"/>
+                    <CheckBox x:Name="ChkBilibili" Content="哔哩哔哩（官方嵌入）" Foreground="#FFE8EAED" Margin="0,3"/>
+                    <CheckBox x:Name="ChkTencent" Content="腾讯视频（官方嵌入）" Foreground="#FFE8EAED" Margin="0,3"/>
+                    <CheckBox x:Name="ChkDouyin" Content="抖音（网页适配）" Foreground="#FFE8EAED" Margin="0,3"/>
+                    <CheckBox x:Name="ChkIqiyi" Content="爱奇艺（网页适配）" Foreground="#FFE8EAED" Margin="0,3"/>
+                    <Separator Margin="0,12"/>
+                    <CheckBox x:Name="ChkLoginEnabled" Content="启用登录窗口（登录信息仅保存在本机）"
+                              Foreground="#FFE8EAED" Margin="0,3"/>
+                    <Button x:Name="BtnLogin" Content="打开登录窗口…" Width="130" Height="28"
+                            HorizontalAlignment="Left" Margin="0,10,0,0" Click="OnOpenLogin"/>
+                </StackPanel>
+            </TabItem>
+
+            <!-- 广告 -->
+            <TabItem Header="广告" Foreground="#FFE8EAED">
+                <StackPanel Margin="16,12">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="轮播间隔 (秒)" Foreground="#FFCCD2D9" Width="110" VerticalAlignment="Center"/>
+                        <TextBox x:Name="TxtAdInterval" Width="80" Height="26"
+                                 Background="#FF1B1D21" Foreground="#FFE8EAED" BorderBrush="#FF3A3F46"/>
+                    </StackPanel>
+                    <CheckBox x:Name="ChkAdShuffle" Content="随机顺序轮播" Foreground="#FFE8EAED" Margin="0,10,0,0"/>
+                    <Button x:Name="BtnOpenAds" Content="打开广告素材目录…" Width="150" Height="28"
+                            HorizontalAlignment="Left" Margin="0,12,0,0" Click="OnOpenAdsDir"/>
+                    <TextBlock Text="目录为空时使用内置兜底素材；支持 png/jpg 图片。"
+                               Foreground="#FF8A919C" FontSize="11" Margin="0,8,0,0" TextWrapping="Wrap"/>
+                </StackPanel>
+            </TabItem>
+
+            <!-- 关于 -->
+            <TabItem Header="关于" Foreground="#FFE8EAED">
+                <StackPanel Margin="16,12">
+                    <TextBlock x:Name="LblVersion" Text="广告弹窗投放 v0.1.0" Foreground="#FFE8EAED"/>
+                    <TextBlock Foreground="#FF8A919C" FontSize="11" Margin="0,10,0,0" TextWrapping="Wrap"
+                               Text="本工具仅供个人在本地学习研究使用，视频内容来自第三方平台的公开网页，请遵守各平台用户协议；请勿在需要高度专注的工作环境中使用。零上报，所有数据仅保存在本机。"/>
+                </StackPanel>
+            </TabItem>
+        </TabControl>
+
+        <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
+            <Button Content="保存" Width="76" Height="28" IsDefault="True" Click="OnSave"/>
+            <Button Content="取消" Width="76" Height="28" Margin="10,0,0,0" IsCancel="True"/>
+        </StackPanel>
+    </Grid>
+</Window>
